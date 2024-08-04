@@ -1,0 +1,19 @@
+{
+    "name": "Backend Container",
+    "dockerComposeFile": ["../../docker-compose.yml"],
+    "service": "backend",
+    "shutdownAction": "none",
+    "workspaceFolder": "/workspace/backend",
+    "customizations": {
+        "vscode": {
+            "extensions": ["charliermarsh.ruff", "ms-python.mypy-type-checker", "ms-python.python"],
+            "settings": {
+                "editor.formatOnSave": true,
+                "editor.defaultFormatter": "charliermarsh.ruff",
+                "mypy-type-checker.args": ["--ignore-missing-imports"],
+                "python.defaultInterpreterPath": "/workspace/backend/.venv/bin/python",
+                "mypy-type-checker.path": ["/workspace/backend/.venv/bin/mypy"]
+            }
+        }
+    }
+}

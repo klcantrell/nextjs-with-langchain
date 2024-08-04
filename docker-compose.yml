@@ -1,0 +1,19 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile.dev
+    volumes:
+      - .:/workspace
+    command: sleep infinity
+    links:
+      - backend
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile.dev
+    volumes:
+      - .:/workspace
+    command: sleep infinity
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

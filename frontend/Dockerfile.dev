@@ -1,0 +1,11 @@
+FROM node:20-bullseye-slim
+
+RUN apt-get update \
+        && apt-get -y install ca-certificates \
+        && apt-get -y install git
+
+COPY ./../nscacert.pem /usr/lib/ssl/certs
+
+RUN c_rehash
+
+ENV NODE_EXTRA_CA_CERTS=/usr/lib/ssl/certs/nscacert.pem
