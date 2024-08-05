@@ -1,9 +1,9 @@
 const decoder = new TextDecoder();
 
-const aiResponse = await fetch("http://localhost:8000");
+const response = await fetch("http://localhost:8000");
 
-if (aiResponse.ok && aiResponse.body) {
-  const reader = aiResponse.body.getReader();
+if (response.ok && response.body) {
+  const reader = response.body.getReader();
 
   try {
     while (true) {

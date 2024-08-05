@@ -1,11 +1,11 @@
 // for testing with Node
 
-const decoder = new TextDecoder();
+const response = await fetch("http://localhost:8000");
 
-const aiResponse = await fetch("http://localhost:8000");
-
-if (aiResponse.ok && aiResponse.body) {
-  const reader = aiResponse.body.getReader();
+if (response.ok && response.body) {
+  const reader = response.body
+    .pipeThrough(new TextDecoderStream("utf-8"))
+    .getReader();
 
   try {
     while (true) {
@@ -14,7 +14,7 @@ if (aiResponse.ok && aiResponse.body) {
         break;
       }
 
-      console.log("chunk", decoder.decode(value));
+      console.log("chunk", value);
     }
   } finally {
     reader.releaseLock();
