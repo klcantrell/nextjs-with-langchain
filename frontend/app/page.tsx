@@ -1,4 +1,4 @@
-import AiMessage from "@/components/AiMessage";
+import Chat from "@/components/AiMessage";
 import { createStreamableValue } from "ai/rsc";
 
 export function getAiMessage() {
@@ -7,7 +7,7 @@ export function getAiMessage() {
   (async () => {
     const response = await fetch("http://backend:8000", {
       // disable Next.js's caching mechanism so that the response is actually streamed
-      // without this, the response would arrive in one big chunk in the stream reader code below 
+      // without this, the response would arrive in one big chunk in the stream reader code below
       // this behavior seems unique to Next.js. tests in node and bun show that responses are streamed
       // as expected regardless of the cache setting
       cache: "no-cache",
@@ -43,7 +43,7 @@ export function getAiMessage() {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <AiMessage text={getAiMessage()} />
+      <Chat text={getAiMessage()} />
     </main>
   );
 }

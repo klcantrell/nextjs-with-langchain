@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 type AiMessageProps = {
   text: StreamableValue<string>;
 };
-export default function AiMessage({ text }: AiMessageProps) {
+export default function Chat({ text }: AiMessageProps) {
   const [messageStream] = useStreamableValue(text);
 
   useEffect(() => {
