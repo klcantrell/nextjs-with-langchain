@@ -1,27 +1,26 @@
 "use client";
 
-import { CoreMessage } from "ai";
 import { readStreamableValue } from "ai/rsc";
 import { useState } from "react";
 
-import { continueConversation } from "@/app/actions";
+import { continueConversation, Message } from "@/app/actions";
 
 export default function Chat() {
-  const [messages, setMessages] = useState<CoreMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   return (
     <div className="flex flex-col w-full max-w-xl py-24 mx-auto stretch">
       {messages.map((m, i) => (
         <div key={i} className="whitespace-pre-wrap">
           {m.role === "user" ? "User: " : "AI: "}
-          {m.content as string}
+          {m.content}
         </div>
       ))}
 
       <form
         onSubmit={async (e) => {
           e.preventDefault();
-          const newMessages: CoreMessage[] = [
+          const newMessages: Message[] = [
             ...messages,
             { content: input, role: "user" },
           ];

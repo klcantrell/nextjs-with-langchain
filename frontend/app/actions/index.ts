@@ -1,9 +1,13 @@
 "use server";
 
 import { createStreamableValue } from "ai/rsc";
-import { CoreMessage } from "ai";
 
-export async function continueConversation(messages: CoreMessage[]) {
+export type Message = {
+  role: "user" | "assistant" | "system";
+  content: string;
+};
+
+export async function continueConversation(messages: Message[]) {
   const formattedMessages = messages.flatMap((message) => {
     switch (message.role) {
       case "system":

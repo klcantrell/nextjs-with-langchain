@@ -1,4 +1,7 @@
-fastapi-dev:
-	fastapi dev app/app.py --host 0.0.0.0
+install:
+	poetry install --no-root
 
-.PHONY: fastapi-dev
+dev:
+	poetry run fastapi dev app/app.py --host 0.0.0.0
+
+.PHONY: dev install

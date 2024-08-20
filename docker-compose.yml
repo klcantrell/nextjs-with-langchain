@@ -1,8 +1,10 @@
 services:
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile.dev
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+      additional_contexts:
+        - project_root=.
     volumes:
       - .:/workspace
     command: sleep infinity
@@ -10,8 +12,10 @@ services:
       - backend
   backend:
     build:
-      context: .
-      dockerfile: backend/Dockerfile.dev
+      context: ./backend
+      dockerfile: Dockerfile.dev
+      additional_contexts:
+        - project_root=.
     volumes:
       - .:/workspace
     command: sleep infinity
