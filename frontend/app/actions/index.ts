@@ -7,7 +7,7 @@ export type Message = {
   content: string;
 };
 
-export async function continueConversation(messages: Message[]) {
+export async function simpleChat(messages: Message[]) {
   const formattedMessages = messages.flatMap((message) => {
     switch (message.role) {
       case "system":
@@ -42,7 +42,7 @@ export async function continueConversation(messages: Message[]) {
     }
   });
 
-  const response = await fetch("http://backend:8000", {
+  const response = await fetch("http://backend:8000/simple-chat", {
     // disable Next.js's caching mechanism so that the response is actually streamed
     // without this, the response would arrive in one big chunk in the stream reader code below
     // this behavior seems unique to Next.js. tests in node and bun show that responses are streamed

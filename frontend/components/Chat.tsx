@@ -3,9 +3,9 @@
 import { readStreamableValue } from "ai/rsc";
 import { useState } from "react";
 
-import { continueConversation, Message } from "@/app/actions";
+import { simpleChat, Message } from "@/app/actions";
 
-export default function Chat() {
+export default function SimpleChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   return (
@@ -28,7 +28,7 @@ export default function Chat() {
           setMessages(newMessages);
           setInput("");
 
-          const result = await continueConversation(newMessages);
+          const result = await simpleChat(newMessages);
 
           for await (const content of readStreamableValue(result)) {
             setMessages([
