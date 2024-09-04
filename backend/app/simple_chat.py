@@ -1,11 +1,12 @@
+from typing_extensions import List, cast
+
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.tools import tool, StructuredTool
 from langchain_core.messages import AIMessageChunk, ToolMessage, HumanMessage
-from pydantic import BaseModel
-from typing_extensions import List, cast
-
-# from langchain_ollama import ChatOllama
 from langchain_openai import ChatOpenAI
+# from langchain_ollama import ChatOllama
+
+from app.types import ChatMessage
 
 
 @tool
@@ -34,15 +35,6 @@ llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
 llm_with_tools = llm.bind_tools([answer_to_life])
 
 chain = prompt | llm_with_tools
-
-
-class ChatMessage(BaseModel):
-    role: str
-    content: str
-
-
-class ChatRequestBody(BaseModel):
-    messages: List[ChatMessage]
 
 
 async def stream_llm_chat(messages: List[ChatMessage]):

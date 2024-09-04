@@ -3,21 +3,24 @@
 import { readStreamableValue } from "ai/rsc";
 import { useState } from "react";
 
-import { simpleChat, Message } from "@/app/actions";
+import { Message, graphChat } from "@/app/actions";
 
-export default function SimpleChat() {
+export default function GraphChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   return (
-    <div className="flex flex-col w-full max-w-xl py-24 mx-auto stretch">
-      {messages.map((m, i) => (
-        <div key={i} className="whitespace-pre-wrap">
-          {m.role === "user" ? "User: " : "AI: "}
-          {m.content}
-        </div>
-      ))}
+    <div className="h-full">
+      <div className="overflow-y-scroll border border-slate-100 h-full">
+        {messages.map((m, i) => (
+          <div key={i} className="whitespace-pre-wrap">
+            {m.role === "user" ? "User: " : "AI: "}
+            {m.content}
+          </div>
+        ))}
+      </div>
 
       <form
+        className="flex flex-col"
         onSubmit={async (e) => {
           e.preventDefault();
           const newMessages: Message[] = [
@@ -28,7 +31,7 @@ export default function SimpleChat() {
           setMessages(newMessages);
           setInput("");
 
-          const result = await simpleChat(newMessages);
+          const result = await graphChat(newMessages);
 
           for await (const content of readStreamableValue(result)) {
             setMessages([
@@ -42,7 +45,7 @@ export default function SimpleChat() {
         }}
       >
         <input
-          className="fixed bottom-0 w-full max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl text-black"
+          className="fixed bottom-0 w-full self-center max-w-md p-2 mb-8 border border-gray-300 rounded shadow-xl text-black"
           value={input}
           placeholder="Say something..."
           onChange={(e) => setInput(e.target.value)}

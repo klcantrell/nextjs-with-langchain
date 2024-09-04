@@ -1,10 +1,9 @@
-from typing import TypedDict, Annotated
+from typing import List, TypedDict, Annotated, cast
 import os
 import operator
 
 from pydantic import BaseModel, Field
 from tavily import TavilyClient
-
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.agents import AgentAction
 from langchain_core.tools import tool
@@ -12,6 +11,8 @@ from langchain_core.runnables import RunnableSerializable
 from langchain_openai import ChatOpenAI
 from langgraph.graph.message import AnyMessage
 from langgraph.graph import StateGraph, END
+
+from app.types import ChatMessage
 
 tavily = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
@@ -80,7 +81,7 @@ prompt = ChatPromptTemplate.from_messages(
     [
         ("system", system_prompt),
         MessagesPlaceholder(variable_name="chat_history"),
-        ("user", "{input}"),
+        ("human", "{input}"),
         ("assistant", "scratchpad: {scratchpad}"),
     ]
 )
@@ -173,7 +174,26 @@ def get_agent():
     return graph.compile()
 
 
-agent = get_agent()
+async def stream_graph_chat(messages: List[ChatMessage]):
+    agent = get_agent()
+
+    llm_messages = [(message.role, message.content) for message in messages]
+    human_input = llm_messages[-1][1]
+
+    async for state in agent.astream(
+        {"chat_history": llm_messages[:-1], "input": human_input}
+    ):
+        if "supervisor" not in state:
+            continue
+
+        state = cast(AgentState, state["supervisor"])
+        tool_name = state["intermediate_steps"][-1].tool
+        tool_args = state["intermediate_steps"][-1].tool_input
+
+        yield f"Running {tool_name} with input: {tool_args}\n"
+
+
+# agent = get_agent()
 
 # agent.invoke(
 #     {
