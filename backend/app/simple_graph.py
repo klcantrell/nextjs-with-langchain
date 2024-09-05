@@ -13,9 +13,13 @@ from langgraph.graph.message import AnyMessage
 from langgraph.graph import StateGraph, END
 
 from app.types import ChatMessage
+from app.joke_store import JokeVectorStore
 
 tavily = TavilyClient(api_key=os.environ["TAVILY_API_KEY"])
 llm = ChatOpenAI(model="gpt-4o-mini", temperature=0.4)
+vectorstore = JokeVectorStore()
+
+# vectorstore.create_index()
 
 
 class AgentState(TypedDict):
@@ -25,12 +29,39 @@ class AgentState(TypedDict):
 
 
 @tool("web_search")
-def web_search(query: str):
+def web_search(query: str) -> str:
     """Finds general knowledge using web search."""
     search = tavily.search(query=query, max_results=5)
     results = search["results"]
     contexts = "\n---\n".join(
-        ["\n".join([x["title"], x["content"], x["url"]]) for x in results]
+        [
+            "\n".join(
+                [
+                    f'Title: {x["title"]}',
+                    f'Content: {x["content"]}',
+                    f'Source: {x["url"]}',
+                ]
+            )
+            for x in results
+        ]
+    )
+    return contexts
+
+
+@tool("joke_database")
+def joke_database(query: str) -> str:
+    """Finds kids jokes from the database."""
+    results = vectorstore.search(query)
+    contexts = "\n---\n".join(
+        [
+            "\n".join(
+                [
+                    f"Content: {x.page_content}",
+                    "Source: joke database",
+                ]
+            )
+            for x in results
+        ]
     )
     return contexts
 
@@ -60,7 +91,7 @@ def final_answer(
     return ""
 
 
-tools = [web_search, final_answer]
+tools = [web_search, final_answer, joke_database]
 
 
 system_prompt = """You are a supervisor of an information gathering workflow.
@@ -134,7 +165,11 @@ def router(state: AgentState):
         return "final_answer"
 
 
-tool_str_to_func = {"web_search": web_search, "final_answer": final_answer}
+tool_str_to_func = {
+    "web_search": web_search,
+    "final_answer": final_answer,
+    "joke_database": joke_database,
+}
 
 
 def run_tool(state: AgentState):
@@ -152,6 +187,7 @@ graph = StateGraph(AgentState)
 
 graph.add_node("supervisor", run_supervisor)
 graph.add_node("web_search", run_tool)
+graph.add_node("joke_database", run_tool)
 graph.add_node("final_answer", run_tool)
 
 graph.set_entry_point("supervisor")
