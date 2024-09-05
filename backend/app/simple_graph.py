@@ -52,32 +52,23 @@ def web_search(query: str) -> str:
 def joke_database(query: str) -> str:
     """Finds kids jokes from the database."""
     results = vectorstore.search(query)
-    contexts = "\n---\n".join(
-        [
-            "\n".join(
-                [
-                    f"Content: {x.page_content}",
-                    "Source: joke database",
-                ]
-            )
-            for x in results
-        ]
-    )
+    content = [f"JOKE: {x.page_content}. SOURCE: Joke Database" for x in results]
+    contexts = "\n---\n".join(content)
     return contexts
 
 
 class FinalAnswerInputSchema(BaseModel):
     simple_reply: str = Field(
-        description="""if the question didn't require any research, populate this field with a simple reply.
-for instance, if the user just says 'hello', respond with a friendly greeting. otherwise, leave this blank."""
+        description="""if the question did not use any information from tools, populate this field with a simple reply.
+for instance, if the user just says 'hello', respond with a friendly greeting. otherwise, populate with a blanks tring."""
     )
     research_reply: str = Field(
-        description="""if the question required research, populate this field with the final answer to the user.
-    otherwise, leave this blank."""
+        description="""if the question used any information from tools, populate this field with the final answer to the user.
+    otherwise, populate with a blank string."""
     )
     sources: str = Field(
-        description="""a bulletpoint list provided detailed sources for all information
-    referenced during the research process."""
+        description="""a bulleted list of the sources provided by tools to get the final answer.
+        otherwise, populate with a blank string if no tools were used."""
     )
 
 
@@ -94,19 +85,16 @@ def final_answer(
 tools = [web_search, final_answer, joke_database]
 
 
-system_prompt = """You are a supervisor of an information gathering workflow.
-Given the user's query you must decide what to do with it based on the
+system_prompt = """Given the user's query you must decide how to respond based on the
 list of tools provided to you.
 
-If you see that a tool has been used (in the scratchpad) with a particular
-query, do NOT use that same tool with the same query again. Also, do NOT use
-any tool more than twice (ie, if the tool appears in the scratchpad twice, do
-not use it again).
+As soon as you can satisfy the user's request with information from the "scratchpad" use the "final_answer" tool.
 
-You should aim to collect information from a diverse range of sources before
-providing the answer to the user. Once you have collected plenty of information
-to answer the user's question (stored in the scratchpad) use the final_answer
-tool."""
+When you get a vague request, go straight to the "final_answer" tool and ask the user to clarify their request.
+
+Jokes are formatted as "Q: <joke setup> A: <joke punchline>". For example, "Q: Why did the scarecrow win an award? A: Because he was outstanding in his field!"
+When you get a request for a joke and you see one in "scratchpad" that you haven't responded with yet,
+respond with it right away."""
 
 prompt = ChatPromptTemplate.from_messages(
     [
@@ -129,6 +117,7 @@ def create_scratchpad(intermediate_steps: list[AgentAction]):
                 f"Tool: {action.tool}, input: {action.tool_input}\n"
                 f"Output: {action.log}"
             )
+    print(f"scratchpad: {research_steps}")
     return "\n---\n".join(research_steps)
 
 
@@ -146,8 +135,8 @@ supervisor: RunnableSerializable = (
 
 
 def run_supervisor(state: AgentState):
-    print("run_supervisor")
-    print(f"intermediate_steps: {state['intermediate_steps']}")
+    # print("run_supervisor")
+    # print(f"intermediate_steps: {state['intermediate_steps']}")
     out = supervisor.invoke(state)
     tool_name = out.tool_calls[0]["name"]
     tool_args = out.tool_calls[0]["args"]
@@ -176,7 +165,7 @@ def run_tool(state: AgentState):
     # use this as helper function so we repeat less code
     tool_name = state["intermediate_steps"][-1].tool
     tool_args = state["intermediate_steps"][-1].tool_input
-    print(f"{tool_name}.invoke(input={tool_args})")
+    # print(f"{tool_name}.invoke(input={tool_args})")
     # run tool
     out = tool_str_to_func[tool_name].invoke(input=tool_args)
     action_out = AgentAction(tool=tool_name, tool_input=tool_args, log=str(out))
